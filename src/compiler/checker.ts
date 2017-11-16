@@ -15389,6 +15389,10 @@ namespace ts {
             const nameLowerCase = name.toLowerCase();
             for (const candidate of symbols) {
                 const candidateName = symbolName(candidate);
+                if (candidateName.length < 3) {
+                    // Don't bother, user would have noticed a 2-character name having an extra character
+                    continue;
+                }
                 if (!(candidate.flags & meaning && Math.abs(candidateName.length - nameLowerCase.length) <= maximumLengthDifference)) {
                     continue;
                 }
@@ -15399,7 +15403,7 @@ namespace ts {
                 if (justCheckExactMatches) {
                     continue;
                 }
-                const distance = levenshteinWithMax(nameLowerCase, candidateNameLowerCase, bestDistance);
+                const distance = levenshteinWithMax(nameLowerCase, candidateNameLowerCase, bestDistance - 1);
                 if (distance === undefined) {
                     continue;
                 }
@@ -15407,7 +15411,8 @@ namespace ts {
                     justCheckExactMatches = true;
                     bestCandidate = candidate;
                 }
-                else if (distance < bestDistance) {
+                else {
+                    Debug.assert(distance < bestDistance); // Else `levenshteinWithMax` should return undefined
                     bestDistance = distance;
                     bestCandidate = candidate;
                 }
